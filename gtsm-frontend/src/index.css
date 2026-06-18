@@ -1,0 +1,106 @@
+:root {
+  --font-sans: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --ey-black: #111115;
+  --ey-charcoal: #2e2e38;
+  --ey-charcoal-2: #3d3d49;
+  --ey-yellow: #ffe600;
+  --ey-yellow-soft: #fff8bf;
+  --text-strong: #1f2328;
+  --text: #3f4550;
+  --text-muted: #6b7280;
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-muted: #fafafa;
+  --border: #dfe3e8;
+  --border-soft: #eceff3;
+  --danger: #b42318;
+  --danger-bg: #fef3f2;
+  --warning: #b54708;
+  --warning-bg: #fffaeb;
+  --success: #067647;
+  --success-bg: #ecfdf3;
+  --info: #175cd3;
+  --info-bg: #eff8ff;
+  --shadow-sm: 0 1px 2px rgba(17, 17, 21, 0.06);
+  --shadow-md: 0 10px 30px rgba(17, 17, 21, 0.08);
+  --radius: 8px;
+  --sidebar-width: 280px;
+
+  font-family: var(--font-sans);
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  min-height: 100%;
+  margin: 0;
+  background: var(--bg);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  letter-spacing: 0;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+a {
+  color: inherit;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  color: var(--text-strong);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+p {
+  line-height: 1.55;
+}
+
+table {
+  width: 100%;
+}
+
+pre {
+  margin: 0;
+  font-family: var(--font-mono);
+}

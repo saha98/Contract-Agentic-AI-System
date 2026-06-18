@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+python-multipart
+pdfplumber
+sentence-transformers
+reportlab
+openai
+python-dotenv
+faiss-cpu
+passlib[bcrypt]
+bcrypt==4.0.1
+sqlalchemy
+python-jose[cryptography]

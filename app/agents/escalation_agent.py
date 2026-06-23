@@ -7,8 +7,6 @@ from app.database.models import (
 
 from app.database.db import SessionLocal
 
-from app.services.email_service import send_email_report
-
 
 def escalation_agent(
     company,
@@ -64,20 +62,6 @@ def escalation_agent(
 
         db.commit()
 
-        # Send notification email
-        try:
-
-            send_email_report(
-                department.contact_email,
-                "report.pdf"
-            )
-
-            email_status = "Notification sent"
-
-        except Exception as e:
-
-            email_status = str(e)
-
         return {
 
             "department": department.department_name,
@@ -86,7 +70,7 @@ def escalation_agent(
 
             "assigned_email": department.contact_email,
 
-            "email_status": email_status
+            "email_status": "Email disabled"
         }
 
     finally:

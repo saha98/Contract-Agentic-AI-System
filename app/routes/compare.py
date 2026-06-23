@@ -13,7 +13,7 @@ from app.services.clause_service import classify_clause, generate_embedding
 from app.services.comparison_service import compare_clauses
 from app.services.insight_service import generate_insights
 from app.services.report_service import generate_report
-from app.services.email_service import send_email_report
+from app.services.vector_store import add_clause_with_embedding
 
 router = APIRouter()
 
@@ -26,10 +26,13 @@ def process_file(file_path):
 
     processed = []
     for clause in clauses:
+        embedding = generate_embedding(clause)
+        add_clause_with_embedding(clause, embedding)
+
         processed.append({
             "text": clause,
             "category": classify_clause(clause),
-            "embedding": generate_embedding(clause)
+            "embedding": embedding
         })
 
     return processed
@@ -43,7 +46,8 @@ async def compare(
     return await compare_files(file1, file2)
 
 async def compare_files(file1: UploadFile = File(...), file2: UploadFile = File(...)):
-    
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+
     path1 = os.path.join(UPLOAD_DIR, file1.filename)
     path2 = os.path.join(UPLOAD_DIR, file2.filename)
 
@@ -56,44 +60,17 @@ async def compare_files(file1: UploadFile = File(...), file2: UploadFile = File(
     clauses1 = process_file(path1)
     clauses2 = process_file(path2)
 
-    # results = compare_clauses(clauses1, clauses2)
-
-    # return {
-    #     "total_comparisons": len(results),
-    #     "sample_results": results[:5]
-    # }
-
     results = compare_clauses(clauses1, clauses2)
 
     insights = generate_insights(results)
 
     report_path = generate_report(insights)
 
-    # send_email_report("saha0709suvodeep@gmail.com", report_path)
-
-    # return {
-    #     "total_issues": len(insights),
-    #     "report_generated": report_path,
-    #     "sample_insights": insights[:5]
-    # }
-
-    # return {
-    #     "total_issues": len(insights),
-    #     "report_generated": report_path,
-    #     "email_status": "Report sent successfully"
-    # }
-
-    report_path = generate_report(insights)
-
-    #Safe email handling
-    try:
-        send_email_report("saha0709suvodeep@gmail.com", report_path)
-        email_status = "Email sent successfully"
-    except Exception as e:
-        email_status = str(e)
-
     return {
         "total_issues": len(insights),
         "report_generated": report_path,
-        "email_status": email_status
+        "contracts": {
+            "primary_clauses": len(clauses1),
+            "comparison_clauses": len(clauses2)
+        }
     }

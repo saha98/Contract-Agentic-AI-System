@@ -9,7 +9,7 @@ if ROOT_DIR not in sys.path:
 from fastapi import APIRouter, UploadFile, File
 from app.services.pdf_services import extract_text_from_pdf, clean_text, split_into_clauses
 from app.services.clause_service import classify_clause_llm, generate_embedding
-from app.services.vector_store import add_clause
+from app.services.vector_store import add_clause_with_embedding
 
 router = APIRouter()
 
@@ -31,9 +31,10 @@ async def upload_file(file: UploadFile = File(...)):
     processed_clauses = []
 
     for clause in clauses:
+        embedding = generate_embedding(clause)
 
         # Store clause in vector database
-        add_clause(clause)
+        add_clause_with_embedding(clause, embedding)
 
         processed_clauses.append({
             "text": clause,
@@ -42,7 +43,7 @@ async def upload_file(file: UploadFile = File(...)):
             "category": classify_clause_llm(clause),
 
             # Semantic embedding
-            "embedding": generate_embedding(clause)
+            "embedding": embedding
         })
 
     return {

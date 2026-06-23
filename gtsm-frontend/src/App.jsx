@@ -1,22 +1,29 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 import "./App.css";
 
-import Sidebar from "./components/Sidebar";
 import ContractUpload from "./components/ContractUpload";
-import ExecutiveDashboard from "./components/ExecutiveDashboard";
-import DepartmentDashboard from "./components/DepartmentDashboard";
-import AuditDashboard from "./components/AuditDashboard";
-import AgentAnalytics from "./components/AgentAnalytics";
-import HistoricalIntelligenceDashboard from "./components/HistoricalIntelligenceDashboard";
-import AgentMonitor from "./components/AgentMonitor";
-import WorkflowDecision from "./components/WorkflowDecision";
-import TopNavbar from "./components/TopNavbar";
-import ExecutiveCommandCenter from "./components/ExecutiveCommandCenter";
+import ExecutiveKPIs from "./components/ExecutiveKPIs";
+import RecentContracts from "./components/RecentContracts";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
-  const [activePage, setActivePage] = useState("Dashboard");
+  const [activeTab, setActiveTab] = useState("contracts");
+  const [history, setHistory] = useState([]);
+
+  useEffect(() => {
+    if (!loggedIn) return;
+
+    axios
+      .get("http://localhost:8000/contract-history")
+      .then((response) => {
+        setHistory(response.data.history || []);
+      })
+      .catch((error) => {
+        console.error("Unable to load contract history:", error);
+      });
+  }, [loggedIn]);
 
   const handleLogin = () => {
     setLoggedIn(true);
@@ -27,10 +34,10 @@ function App() {
       <main className="app-login-shell">
         <section className="login-panel" aria-label="Sign in">
           <div className="login-brand">
-            <div className="brand-mark">EY</div>
+            <div className="brand-mark">CA</div>
             <div>
-              <h1 className="login-title">EY AI</h1>
-              <p className="login-subtitle">Contract Intelligence Platform</p>
+              <h1 className="login-title">Contract AI</h1>
+              <p className="login-subtitle">Enterprise contract intelligence for faster review and safer deals.</p>
             </div>
           </div>
 
@@ -46,7 +53,7 @@ function App() {
             </label>
 
             <button className="primary-button" type="button" onClick={handleLogin}>
-              Login
+              Sign In
             </button>
           </div>
         </section>
@@ -56,67 +63,69 @@ function App() {
 
   return (
     <div className="app-shell">
-      <Sidebar activePage={activePage} setActivePage={setActivePage} />
-
       <div className="main-shell">
-        <TopNavbar activePage={activePage} />
+        <header className="app-header">
+          <div className="app-header-content">
+            <div className="app-brand">
+              <div className="app-logo">CA</div>
+              <div>
+                <h1 className="app-title">Contract Intelligence</h1>
+                <p className="app-subtitle">Enterprise Contract Analysis & Management</p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <nav className="app-tabs">
+          <button
+            className={`app-tab ${activeTab === "contracts" ? "active" : ""}`}
+            onClick={() => setActiveTab("contracts")}
+          >
+            Contract Analysis
+          </button>
+          <button
+            className={`app-tab ${activeTab === "dashboard" ? "active" : ""}`}
+            onClick={() => setActiveTab("dashboard")}
+          >
+            Dashboard
+          </button>
+          <button
+            className={`app-tab ${activeTab === "history" ? "active" : ""}`}
+            onClick={() => setActiveTab("history")}
+          >
+            Historical Data
+          </button>
+        </nav>
 
         <main className="page-content">
-          {activePage === "Dashboard" && <ExecutiveCommandCenter />}
-
-          {activePage === "Contracts" && <ContractUpload />}
-
-          {activePage === "Risk Center" && <ExecutiveDashboard />}
-
-          {activePage === "Departments" && <DepartmentDashboard />}
-
-          {activePage === "Audit" && (
-            <div className="page-stack">
-              <AuditDashboard />
-              <WorkflowDecision />
-            </div>
+          {activeTab === "contracts" && (
+            <section className="tab-content">
+              <ContractUpload />
+            </section>
           )}
 
-          {activePage === "Analytics" && (
-            <div className="page-stack">
-              <AgentAnalytics />
-              <AgentMonitor />
-            </div>
+          {activeTab === "dashboard" && (
+            <section className="tab-content">
+              <div className="dashboard-wrapper">
+                <ExecutiveKPIs />
+                <RecentContracts history={history} />
+              </div>
+            </section>
           )}
 
-          {activePage === "History" && <HistoricalIntelligenceDashboard />}
-
-          {activePage === "Settings" && (
-            <div className="page-stack">
-              <header className="page-header">
-                <div>
-                  <p className="ey-kicker">Administration</p>
-                  <h2 className="page-heading">Platform Settings</h2>
-                  <p className="page-subtitle">Governance, access, and operating controls.</p>
-                </div>
-              </header>
-
-              <section className="tool-card">
-                <div className="settings-grid">
-                  <article className="settings-item">
-                    <h3>User Management</h3>
-                    <p>Manage platform users and invitation status.</p>
-                  </article>
-                  <article className="settings-item">
-                    <h3>Role Configuration</h3>
-                    <p>Maintain operating roles for review and approval teams.</p>
-                  </article>
-                  <article className="settings-item">
-                    <h3>Access Control</h3>
-                    <p>Review controls for data, reports, and executive dashboards.</p>
-                  </article>
-                  <article className="settings-item">
-                    <h3>Platform Configuration</h3>
-                    <p>Configure contract intelligence workflows and defaults.</p>
-                  </article>
-                </div>
-              </section>
-            </div>
+          {activeTab === "history" && (
+            <section className="tab-content">
+              <div className="history-wrapper">
+                <header className="section-header">
+                  <div>
+                    <p className="ey-kicker">Historical Data</p>
+                    <h2 className="section-title">Contract Processing History</h2>
+                    <p className="section-subtitle">All uploaded contracts and their analysis results.</p>
+                  </div>
+                </header>
+                <RecentContracts history={history} />
+              </div>
+            </section>
           )}
         </main>
       </div>

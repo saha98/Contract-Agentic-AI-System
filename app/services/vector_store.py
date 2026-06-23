@@ -19,6 +19,11 @@ def add_clause(clause):
 
     embedding = generate_embedding(clause)
 
+    add_clause_with_embedding(clause, embedding)
+
+
+def add_clause_with_embedding(clause, embedding):
+
     vector = np.array([embedding]).astype("float32")
 
     index.add(vector)

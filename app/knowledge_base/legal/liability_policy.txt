@@ -1,0 +1,11 @@
+Liability Policy
+
+Unlimited liability clauses are considered high risk.
+
+Liability clauses that limit liability to the contract value are generally considered low risk.
+
+Liability caps between 1x and 2x contract value are standard industry practice.
+
+Uncapped financial exposure should be escalated to Legal and Risk teams.
+
+Limitation of liability provisions reduce business exposure and are recommended in enterprise contracts.

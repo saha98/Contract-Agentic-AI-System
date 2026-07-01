@@ -1,0 +1,7 @@
+Confidentiality clauses must clearly define protected information.
+
+Data privacy obligations should align with GDPR and enterprise policies.
+
+Missing confidentiality provisions increase compliance risk.
+
+Sensitive information must be protected through contractual controls.

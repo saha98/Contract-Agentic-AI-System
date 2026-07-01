@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "npm --prefix gtsm-frontend run dev",
-    "backend": "python -m uvicorn app.main:app --reload --app-dir . --reload-dir app",
+    "backend": "run.bat",
     "build": "npm --prefix gtsm-frontend run build",
     "lint": "npm --prefix gtsm-frontend run lint",
     "preview": "npm --prefix gtsm-frontend run preview"

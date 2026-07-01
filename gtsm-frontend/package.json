@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "backend": "python -m uvicorn app.main:app --reload --app-dir .. --reload-dir ../app",
+    "backend": "..\\run.bat",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

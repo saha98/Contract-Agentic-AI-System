@@ -15,6 +15,15 @@ def clause_agent(clauses):
     processed_clauses = []
 
     for clause in clauses:
+        
+        if len(clause.split()) < 5:
+            continue
+
+        if (
+        "agreement" in clause.lower()
+        and len(clause.split()) < 10
+        ):
+            continue
 
         # Generate category
         category = classify_clause_llm(clause)

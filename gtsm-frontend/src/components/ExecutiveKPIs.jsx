@@ -1,61 +1,52 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
 import { FiAlertTriangle, FiCpu, FiFileText, FiShield } from "react-icons/fi";
 
-function ExecutiveKPIs() {
-  const [metrics, setMetrics] = useState({
-    contracts: 0,
-    total_risks: 0,
-    high_risk_contracts: 0,
-    agent_runs: 0
-  });
+const INITIAL_METRICS = {
+  contracts: 0,
+  total_risks: 0,
+  high_risk_contracts: 0,
+  agent_runs: 0
+};
 
-  useEffect(() => {
-    axios
-      .get("http://localhost:8000/executive-metrics")
-      .then((response) => {
-        setMetrics(response.data);
-      })
-      .catch((error) => {
-        console.error("Executive Metrics API Error:", error);
-      });
-  }, []);
-
+function ExecutiveKPIs({ metrics = INITIAL_METRICS }) {
   const cards = [
     {
       title: "Contracts",
-      value: metrics.contracts,
-      note: "Total processed",
-      icon: <FiFileText />
+      value: metrics.contracts ?? 0,
+      note: "portfolio records under review",
+      icon: <FiFileText />,
+      tone: "standard"
     },
     {
       title: "Total Risks",
-      value: metrics.total_risks,
-      note: "Identified issues",
-      icon: <FiAlertTriangle />
+      value: metrics.total_risks ?? 0,
+      note: "issues identified across the portfolio",
+      icon: <FiAlertTriangle />,
+      tone: "alert"
     },
     {
       title: "High Risk",
-      value: metrics.high_risk_contracts,
-      note: "Contracts requiring attention",
-      icon: <FiShield />
+      value: metrics.high_risk_contracts ?? 0,
+      note: "contracts requiring senior attention",
+      icon: <FiShield />,
+      tone: "emphasis"
     },
     {
       title: "Agent Runs",
-      value: metrics.agent_runs,
-      note: "Workflow executions",
-      icon: <FiCpu />
+      value: metrics.agent_runs ?? 0,
+      note: "workflow executions logged",
+      icon: <FiCpu />,
+      tone: "standard"
     }
   ];
 
   return (
     <section className="metric-grid" aria-label="Executive KPIs">
       {cards.map((card) => (
-        <article className="metric-card" key={card.title}>
+        <article className={`metric-card metric-card--${card.tone}`} key={card.title}>
           <div>
             <div className="metric-card-header">
               <p className="metric-label">{card.title}</p>
-              <div className="metric-icon accent">{card.icon}</div>
+              <div className="metric-icon">{card.icon}</div>
             </div>
             <div className="metric-value">{card.value}</div>
           </div>

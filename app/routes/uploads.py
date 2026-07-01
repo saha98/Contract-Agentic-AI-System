@@ -29,9 +29,11 @@ async def upload_file(file: UploadFile = File(...)):
     clauses = split_into_clauses(cleaned_text)
 
     processed_clauses = []
+    category_breakdown = {}
 
     for clause in clauses:
         embedding = generate_embedding(clause)
+        category = classify_clause_llm(clause)
 
         # Store clause in vector database
         add_clause_with_embedding(clause, embedding)
@@ -40,19 +42,41 @@ async def upload_file(file: UploadFile = File(...)):
             "text": clause,
 
             # Dynamic LLM classification
-            "category": classify_clause_llm(clause),
+            "category": category,
 
             # Semantic embedding
             "embedding": embedding
         })
 
+        category_breakdown[
+            category
+        ] = category_breakdown.get(
+            category,
+            0
+        ) + 1
+
+    clause_preview = [
+        {
+            "text": item["text"][:260],
+            "category": item["category"]
+        }
+        for item in processed_clauses[:4]
+    ]
+
     return {
         "filename": file.filename,
         "total_clauses": len(processed_clauses),
-        "sample_output": processed_clauses[:3]
+        "sample_output": clause_preview,
+        "category_breakdown": category_breakdown
     }
 
 if __name__ == "__main__":
+    import os
     import uvicorn
 
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(
+        "app.main:app",
+        host=os.getenv("APP_HOST", "127.0.0.1"),
+        port=int(os.getenv("APP_PORT", "8000")),
+        reload=True,
+    )

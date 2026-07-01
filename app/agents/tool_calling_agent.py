@@ -4,8 +4,8 @@ import sys
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
-    
-from app.tools.tool_registry import TOOLS
+
+from app.tools.tool_registery import TOOLS
 from app.services.llm_service import ask_llm
 
 

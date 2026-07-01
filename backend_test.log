@@ -1,0 +1,217 @@
+INFO:     127.0.0.1:58003 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50366 - "POST /upload HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50425 - "POST /compare HTTP/1.1" 200 OK
+SELECTED AGENTS: ['clause_agent', 'risk_agent', 'insight_agent']
+
+
+====================================
+RAG QUERY
+Payment Terms: The client agrees to pay all fees within 30 days of invoice receipt
+
+RAG RESULTS
+['Payment Terms Policy\n\nPayment terms between 15 and 45 days are considered low risk.\n\nPayment terms between 60 and 90 days are considered moderate risk.\n\nPayment terms exceeding 90 days should be escalated for financial review.\n\nContracts should clearly define invoice acceptance procedures.\n\nLate payment penalties should be specified where possible.\n\nExtended payment periods may negatively impact cash flow and working capital.']
+====================================
+
+
+
+==========================
+CLAUSE
+Payment Terms: The client agrees to pay all fees within 30 days of invoice receipt
+
+RAG CONTEXT
+Payment Terms Policy
+
+Payment terms between 15 and 45 days are considered low risk.
+
+Payment terms between 60 and 90 days are considered moderate risk.
+
+Payment terms exceeding 90 days should be escalated for financial review.
+
+Contracts should clearly define invoice acceptance procedures.
+
+Late payment penalties should be specified where possible.
+
+Extended payment periods may negatively impact cash flow and working capital.
+==========================
+
+
+========== RAW LLM ==========
+```
+{
+  "risk_level": "Low",
+  "severity": "Minor",
+  "business_impact": "The contract clause aligns with the payment terms policy, which considers a 30-day payment term as low risk. This reduces the likelihood of cash flow disruptions and working capital issues.",
+  "recommended_action": "Monitor the client's payment history to ensure compliance with this clause.",
+  "explanation": "The specified payment term of 30 days falls within the considered low-risk range (15-45 days). This reduces the risk of financial implications, such as negative impacts on cash flow and working capital."
+}
+```
+=============================
+
+
+
+====================================
+RAG QUERY
+Termination Clause: Either party may terminate this agreement with 15 days written notice
+
+RAG RESULTS
+['Termination clauses should provide balanced rights to both parties.\n\nImmediate termination rights favoring one party introduce legal risk.\n\nContracts should include cure periods before termination.\n\nUnilateral termination rights are considered moderate to high risk.']
+====================================
+
+
+
+==========================
+CLAUSE
+Termination Clause: Either party may terminate this agreement with 15 days written notice
+
+RAG CONTEXT
+Termination clauses should provide balanced rights to both parties.
+
+Immediate termination rights favoring one party introduce legal risk.
+
+Contracts should include cure periods before termination.
+
+Unilateral termination rights are considered moderate to high risk.
+==========================
+
+
+========== RAW LLM ==========
+```
+{
+  "risk_level": "High",
+  "severity": "Critical",
+  "business_impact": "Unilateral termination rights may lead to disputes and legal issues, as one party may not have sufficient notice or opportunity to cure before termination.",
+  "recommended_action": "Review and revise the contract to include mutual termination rights with a reasonable notice period, such as 30-60 days.",
+  "explanation": "The clause provides unilateral termination rights, which are considered moderate to high risk. Immediate termination without notice can lead to disputes and legal issues."
+}
+```
+=============================
+
+
+
+====================================
+RAG QUERY
+Liability Clause: The company shall not be liable for indirect or consequential damages
+
+RAG RESULTS
+['Liability Policy\n\nUnlimited liability clauses are considered high risk.\n\nLiability clauses that limit liability to the contract value are generally considered low risk.\n\nLiability caps between 1x and 2x contract value are standard industry practice.\n\nUncapped financial exposure should be escalated to Legal and Risk teams.\n\nLimitation of liability provisions reduce business exposure and are recommended in enterprise contracts.']
+====================================
+
+
+
+==========================
+CLAUSE
+Liability Clause: The company shall not be liable for indirect or consequential damages
+
+RAG CONTEXT
+Liability Policy
+
+Unlimited liability clauses are considered high risk.
+
+Liability clauses that limit liability to the contract value are generally considered low risk.
+
+Liability caps between 1x and 2x contract value are standard industry practice.
+
+Uncapped financial exposure should be escalated to Legal and Risk teams.
+
+Limitation of liability provisions reduce business exposure and are recommended in enterprise contracts.
+==========================
+
+
+========== RAW LLM ==========
+```
+{
+  "risk_level": "Low",
+  "severity": "Minor",
+  "business_impact": "The clause limits the company's liability to indirect or consequential damages, reducing business exposure.",
+  "recommended_action": "Review and consider adding a limitation of liability provision to further reduce financial exposure.",
+  "explanation": "The clause is considered low risk as it only limits liability to indirect or consequential damages. However, it is recommended to add additional provisions to limit financial exposure."
+}
+```
+=============================
+
+
+
+====================================
+RAG QUERY
+Confidentiality Clause: All shared information must remain confidential and not disclosed to third parties
+
+RAG RESULTS
+['Confidentiality clauses must clearly define protected information.\n\nData privacy obligations should align with GDPR and enterprise policies.\n\nMissing confidentiality provisions increase compliance risk.\n\nSensitive information must be protected through contractual controls.']
+====================================
+
+
+
+==========================
+CLAUSE
+Confidentiality Clause: All shared information must remain confidential and not disclosed to third parties
+
+RAG CONTEXT
+Confidentiality clauses must clearly define protected information.
+
+Data privacy obligations should align with GDPR and enterprise policies.
+
+Missing confidentiality provisions increase compliance risk.
+
+Sensitive information must be protected through contractual controls.
+==========================
+
+
+========== RAW LLM ==========
+```
+{
+  "risk_level": "Low",
+  "severity": "Minor",
+  "business_impact": "The contract clause meets the minimum requirements for confidentiality, but it may not provide sufficient protection for sensitive information. The lack of specific controls and protocols for handling confidential data could lead to compliance issues.",
+  "recommended_action": "Review and update the confidentiality clause to include specific controls and protocols for handling protected information, such as encryption methods and access controls.",
+  "explanation": "The provided clause meets the basic requirement for confidentiality, but it does not explicitly define what constitutes 'shared information' or provide guidance on how to protect sensitive data. Adding more detail and specificity would help mitigate compliance risks."
+}
+```
+=============================
+
+
+
+====================================
+RAG QUERY
+General Clause: This agreement shall be governed by applicable laws.
+
+RAG RESULTS
+['Indemnity Policy\n\nMutual indemnification clauses are preferred.\n\nOne-sided indemnity clauses create elevated legal risk.\n\nIndemnity obligations should be capped where appropriate.\n\nBroad indemnification language may expose parties to excessive liability.\n\nThird-party claims should be clearly addressed.']
+====================================
+
+
+
+==========================
+CLAUSE
+General Clause: This agreement shall be governed by applicable laws.
+
+RAG CONTEXT
+Indemnity Policy
+
+Mutual indemnification clauses are preferred.
+
+One-sided indemnity clauses create elevated legal risk.
+
+Indemnity obligations should be capped where appropriate.
+
+Broad indemnification language may expose parties to excessive liability.
+
+Third-party claims should be clearly addressed.
+==========================
+
+
+========== RAW LLM ==========
+```
+{
+  "risk_level": "High",
+  "severity": "Critical",
+  "business_impact": "The contract clause does not specify which laws will govern the agreement, leaving it open to interpretation and potential disputes.",
+  "recommended_action": "Request that the contract be revised to include a specific choice of governing law or jurisdiction.",
+  "explanation": "A general clause stating that the agreement shall be governed by applicable laws is too vague and may lead to legal disputes. It is recommended to specify which laws will apply to avoid potential issues."
+}
+```
+=============================
+
+CONTRACT HISTORY SAVED
+JSON SERIALIZATION CHECK PASSED
+INFO:     127.0.0.1:53428 - "POST /adaptive-workflow HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50709 - "GET / HTTP/1.1" 200 OK

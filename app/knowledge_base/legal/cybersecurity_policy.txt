@@ -1,0 +1,11 @@
+Cybersecurity Policy
+
+Contracts involving customer data should require security controls.
+
+Encryption standards should be specified.
+
+Security incidents should be reported within a defined timeframe.
+
+Vendors should maintain cybersecurity certifications where applicable.
+
+Failure to define security obligations increases operational risk.

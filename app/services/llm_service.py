@@ -16,6 +16,7 @@ client = OpenAI(base_url=OLLAMA_BASE_URL, api_key="ollama")
 def ask_llm(prompt):
     try:
         response = client.chat.completions.create(
+            max_tokens=1500,
             model=OLLAMA_MODEL,
             messages=[
                 {
@@ -27,7 +28,7 @@ def ask_llm(prompt):
                     "content": prompt
                 }
             ],
-            temperature=0.2
+            temperature=0
         )
 
         return response.choices[0].message.content

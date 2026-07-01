@@ -1,6 +1,7 @@
 import os
 import sys
-
+import json
+import numpy as np
 ROOT_DIR = os.path.dirname(
     os.path.dirname(
         os.path.dirname(
@@ -19,6 +20,10 @@ from app.agents.insight_agent import insight_agent
 from app.agents.communication_agent import communication_agent
 from app.agents.department_agent import department_agent
 
+from app.agents.governance_agent import governance_agent
+from app.agents.compliance_agent import compliance_agent
+from app.agents.executive_agent import executive_agent
+
 from app.memory.memory_agent import memory_agent
 from app.memory.contract_memory import save_contract
 from app.memory.risk_memory import save_risks
@@ -32,14 +37,76 @@ from app.services.history_service import (
     save_contract_history
 )
 
+from app.models.contract_feature_extractor import (
+    extract_features
+)
+
+from app.models.risk_scoring_model import (
+    score_contract
+)
+
+from app.models.xgboost_risk_model import (
+    predict_risk
+)
+
+from app.models.explainability import (
+    explain_prediction
+)
+
+
 AVAILABLE_AGENTS = {
     "ingestion_agent",
     "clause_agent",
     "risk_agent",
     "insight_agent",
-    "communication_agent",
+    "communication_agent"
 }
 
+def make_json_safe(obj):
+
+    if isinstance(
+        obj,
+        dict
+    ):
+        return {
+            k: make_json_safe(v)
+            for k, v in obj.items()
+        }
+
+    elif isinstance(
+        obj,
+        list
+    ):
+        return [
+            make_json_safe(item)
+            for item in obj
+        ]
+
+    elif isinstance(
+        obj,
+        (
+            np.float32,
+            np.float64
+        )
+    ):
+        return float(obj)
+
+    elif isinstance(
+        obj,
+        (
+            np.int32,
+            np.int64
+        )
+    ):
+        return int(obj)
+
+    elif hasattr(
+        obj,
+        "tolist"
+    ):
+        return obj.tolist()
+
+    return obj
 
 def adaptive_orchestrator(
     user_query,
@@ -48,16 +115,10 @@ def adaptive_orchestrator(
 
     clear_logs()
 
-    # ==================================================
-    # ENTERPRISE WORKFLOW SELECTION
-    # ==================================================
-
     selected_agents = [
 
         "clause_agent",
-
         "risk_agent",
-
         "insight_agent"
 
     ]
@@ -77,7 +138,26 @@ def adaptive_orchestrator(
         selected_agents
     )
 
-    workflow_data = {}
+    workflow_data = {
+
+        "agent_state": {
+
+            "workflow_type":
+                "Contract Intelligence",
+
+            "rag_enabled":
+                True,
+
+            "ml_enabled":
+                True,
+
+            "xai_enabled":
+                True,
+
+            "governance_enabled":
+                True
+        }
+    }
 
     # ==================================================
     # INGESTION AGENT
@@ -97,20 +177,22 @@ def adaptive_orchestrator(
         clauses
     )
 
+    workflow_data[
+        "clauses"
+    ] = clauses
+
     log_step(
         "Ingestion Agent",
         "Completed"
     )
 
-    workflow_data["clauses"] = clauses
-
     # ==================================================
     # MEMORY AGENT
     # ==================================================
 
-    memory_context = memory_agent()
-
-    workflow_data["memory"] = memory_context
+    workflow_data[
+        "memory"
+    ] = memory_agent()
 
     # ==================================================
     # CLAUSE AGENT
@@ -124,6 +206,89 @@ def adaptive_orchestrator(
     processed_clauses = clause_agent(
         clauses
     )
+    
+    """workflow_data[
+        "processed_clauses"
+    ] = processed_clauses
+
+    log_step(
+        "Clause Agent",
+        "Completed"
+    )"""
+
+    # ==================================================
+    # FEATURE ENGINEERING
+    # ==================================================
+
+    contract_features = extract_features(
+        processed_clauses
+    )
+
+    from app.models.model_consensus import (
+    get_consensus_prediction
+    )
+
+    consensus_prediction = (
+        get_consensus_prediction(
+            contract_features
+        )
+    )
+
+    workflow_data[
+        "model_consensus"
+    ] = consensus_prediction
+
+    workflow_data[
+            "contract_features"
+        ] = contract_features
+
+    # ==================================================
+    # XGBOOST RISK PREDICTION
+    # ==================================================
+
+    ml_prediction = predict_risk(
+        contract_features
+    )
+
+    workflow_data[
+        "ml_risk_prediction"
+    ] = ml_prediction
+
+    workflow_data[
+        "agent_state"
+    ][
+        "ml_enabled"
+    ] = (
+        ml_prediction.get(
+            "model_status"
+        ) == "ready"
+    )
+
+    # ==================================================
+    # EXPLAINABLE AI
+    # ==================================================
+
+    xai_result = explain_prediction(
+        contract_features
+    )
+
+    workflow_data[
+        "explainability"
+    ] = xai_result
+
+    workflow_data[
+        "agent_state"
+    ][
+        "xai_enabled"
+    ] = (
+        xai_result.get(
+            "model_status"
+        ) == "ready"
+    )
+
+    # ==================================================
+    # DEPARTMENT AGENT
+    # ==================================================
 
     department_results = department_agent(
         processed_clauses
@@ -133,17 +298,8 @@ def adaptive_orchestrator(
         "department_results"
     ] = department_results
 
-    workflow_data[
-        "processed_clauses"
-    ] = processed_clauses
-
-    log_step(
-        "Clause Agent",
-        "Completed"
-    )
-
     # ==================================================
-    # RISK AGENT
+    # RISK AGENT (RAG ENABLED)
     # ==================================================
 
     log_step(
@@ -163,10 +319,46 @@ def adaptive_orchestrator(
         "risks"
     ] = risks
 
+    risk_metrics = score_contract(
+        risks
+    )
+
+    workflow_data[
+        "risk_metrics"
+    ] = risk_metrics
+
     log_step(
         "Risk Agent",
         "Completed"
     )
+
+    # ==================================================
+    # GOVERNANCE AGENT
+    # ==================================================
+
+    governance_result = governance_agent(
+
+        risks,
+
+        risk_metrics
+
+    )
+
+    workflow_data[
+        "governance"
+    ] = governance_result
+
+    # ==================================================
+    # COMPLIANCE AGENT
+    # ==================================================
+
+    compliance_result = compliance_agent(
+        processed_clauses
+    )
+
+    workflow_data[
+        "compliance"
+    ] = compliance_result
 
     # ==================================================
     # INSIGHT AGENT
@@ -178,13 +370,39 @@ def adaptive_orchestrator(
     )
 
     insights = insight_agent(
+
         risks,
+
         department_results
+
     )
 
     workflow_data[
         "insights"
     ] = insights
+
+    log_step(
+        "Insight Agent",
+        "Completed"
+    )
+
+    # ==================================================
+    # EXECUTIVE AGENT
+    # ==================================================
+
+    executive_summary = executive_agent(
+
+        ml_prediction,
+
+        governance_result,
+
+        compliance_result
+
+    )
+
+    workflow_data[
+        "executive_summary"
+    ] = executive_summary
 
     executive_record = {
 
@@ -195,17 +413,22 @@ def adaptive_orchestrator(
             department_results,
 
         "insights":
-            insights
+            insights,
+
+        "risk_metrics":
+            risk_metrics,
+
+        "governance":
+            governance_result,
+
+        "compliance":
+            compliance_result
+
     }
 
     workflow_data[
         "executive_record"
     ] = executive_record
-
-    log_step(
-        "Insight Agent",
-        "Completed"
-    )
 
     # ==================================================
     # COMMUNICATION AGENT
@@ -241,25 +464,15 @@ def adaptive_orchestrator(
     try:
 
         clause_count = len(
-            workflow_data.get(
-                "clauses",
-                []
-            )
+            clauses
         )
 
         risk_count = len(
-            workflow_data.get(
-                "risks",
-                []
-            )
+            risks
         )
 
         summary = str(
             insights[:1]
-        )
-
-        print(
-            "SAVING CONTRACT HISTORY..."
         )
 
         save_contract_history(
@@ -288,6 +501,11 @@ def adaptive_orchestrator(
     # ==================================================
     # RETURN RESPONSE
     # ==================================================
+    safe_workflow_data = make_json_safe(
+    workflow_data
+    )
+
+    print("JSON SERIALIZATION CHECK PASSED")
 
     return {
 
@@ -295,5 +513,5 @@ def adaptive_orchestrator(
             selected_agents,
 
         "workflow_output":
-            workflow_data
+            safe_workflow_data
     }

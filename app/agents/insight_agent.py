@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 
 ROOT_DIR = os.path.dirname(
     os.path.dirname(
@@ -21,18 +22,16 @@ def insight_agent(
     department_results
 ):
 
-    final_insights = []
-
     log_step(
         "Insight Agent",
         "Started"
     )
 
+    risk_summary = []
+
     for index, risk in enumerate(
         risk_results
     ):
-
-        # Safe department lookup
 
         if index < len(
             department_results
@@ -50,53 +49,13 @@ def insight_agent(
 
             department = "General"
 
-        prompt = f"""
-Based on the following information:
-
-Risk Analysis:
-{risk.get('analysis', '')}
-
-Risk Level:
-{risk.get('risk_level', 'Unknown')}
-
-Severity:
-{risk.get('severity', 'Unknown')}
-
-Business Impact:
-{risk.get('business_impact', 'Unknown')}
-
-Responsible Department:
-{department}
-
-Generate:
-
-1. Executive Summary
-
-2. Business Impact Assessment
-
-3. Risk Recommendation
-
-4. Negotiation Advice
-
-5. Department Action Items
-
-6. Next Steps
-"""
-
-        response = ask_llm(
-            prompt
-        )
-
-        final_insights.append({
+        risk_summary.append({
 
             "clause":
                 risk.get(
                     "clause",
                     ""
                 ),
-
-            "department":
-                department,
 
             "risk_level":
                 risk.get(
@@ -110,14 +69,65 @@ Generate:
                     "Unknown"
                 ),
 
-            "insight":
-                response
+            "department":
+                department,
+
+            "business_impact":
+                risk.get(
+                    "business_impact",
+                    ""
+                )
 
         })
+
+    prompt = f"""
+You are a senior enterprise contract advisor.
+
+Analyze ALL contract risks together.
+
+Risk Data:
+
+{json.dumps(risk_summary, indent=2)}
+
+Generate:
+
+1. Executive Summary
+
+2. Top 5 Risks
+
+3. Business Impact Assessment
+
+4. Negotiation Recommendations
+
+5. Department Action Items
+
+6. Governance Recommendations
+
+7. Next Steps
+
+Return a professional enterprise report.
+"""
+
+    response = ask_llm(
+        prompt
+    )
+
+    final_insight = {
+
+        "risk_count":
+            len(
+                risk_results
+            ),
+
+        "report":
+            response
+    }
 
     log_step(
         "Insight Agent",
         "Completed"
     )
 
-    return final_insights
+    return [
+        final_insight
+    ]

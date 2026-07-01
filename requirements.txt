@@ -11,3 +11,10 @@ passlib[bcrypt]
 bcrypt==4.0.1
 sqlalchemy
 python-jose[cryptography]
+chromadb==1.5.9
+pandas
+scikit-learn
+joblib
+xgboost
+shap
+langgraph

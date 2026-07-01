@@ -1,4 +1,8 @@
-from fastapi import APIRouter, UploadFile, File
+from datetime import datetime
+from pathlib import Path
+
+from fastapi import APIRouter, UploadFile, File, HTTPException, Query
+from fastapi.responses import FileResponse
 import shutil
 import os
 import sys
@@ -18,6 +22,25 @@ from app.services.vector_store import add_clause_with_embedding
 router = APIRouter()
 
 UPLOAD_DIR = "data/uploads"
+REPORT_DIR = "data"
+
+
+def sanitize_filename(name):
+    base_name = os.path.splitext(
+        os.path.basename(name)
+    )[0]
+
+    sanitized = "".join(
+        character
+        if (
+            character.isalnum()
+            or character in {"-", "_"}
+        )
+        else "_"
+        for character in base_name
+    ).strip("_")
+
+    return sanitized or "contract"
 
 def process_file(file_path):
     raw_text = extract_text_from_pdf(file_path)
@@ -45,6 +68,34 @@ async def compare(
 ):
     return await compare_files(file1, file2)
 
+
+@router.get("/compare-report")
+def download_compare_report(
+    path: str = Query(...)
+):
+    data_dir = Path(REPORT_DIR).resolve()
+    requested_path = Path(path).resolve()
+
+    if not str(requested_path).startswith(
+        str(data_dir)
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid report path."
+        )
+
+    if not requested_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail="Report not found."
+        )
+
+    return FileResponse(
+        requested_path,
+        media_type="application/pdf",
+        filename=requested_path.name
+    )
+
 async def compare_files(file1: UploadFile = File(...), file2: UploadFile = File(...)):
     os.makedirs(UPLOAD_DIR, exist_ok=True)
 
@@ -64,11 +115,43 @@ async def compare_files(file1: UploadFile = File(...), file2: UploadFile = File(
 
     insights = generate_insights(results)
 
-    report_path = generate_report(insights)
+    report_filename = (
+        "comparison_"
+        f"{sanitize_filename(file1.filename)}"
+        "_vs_"
+        f"{sanitize_filename(file2.filename)}"
+        f"_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+    )
+
+    report_path = generate_report(
+        insights,
+        filename=report_filename
+    )
+
+    risk_breakdown = {
+        "high": sum(
+            1
+            for item in insights
+            if item["risk_level"] == "High"
+        ),
+        "medium": sum(
+            1
+            for item in insights
+            if item["risk_level"] == "Medium"
+        ),
+        "low": sum(
+            1
+            for item in insights
+            if item["risk_level"] == "Low"
+        )
+    }
 
     return {
         "total_issues": len(insights),
         "report_generated": report_path,
+        "report_filename": report_filename,
+        "risk_breakdown": risk_breakdown,
+        "insights": insights[:8],
         "contracts": {
             "primary_clauses": len(clauses1),
             "comparison_clauses": len(clauses2)

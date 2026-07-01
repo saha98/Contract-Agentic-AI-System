@@ -5,6 +5,27 @@ ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
+DEFAULT_APP_HOST = os.getenv("APP_HOST", "127.0.0.1")
+DEFAULT_APP_PORT = int(os.getenv("APP_PORT", "8000"))
+
+
+def _build_cors_origins() -> list[str]:
+    origins = {
+        "http://localhost",
+        "http://127.0.0.1",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:4173",
+        "http://127.0.0.1:4173",
+    }
+    extra_origins = os.getenv("CORS_ALLOW_ORIGINS", "")
+    origins.update(
+        origin.strip()
+        for origin in extra_origins.split(",")
+        if origin.strip()
+    )
+    return sorted(origins)
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import uploads, compare, chat, feedback, conversation, adaptive, auth, departments, escalation, audit_logs, agent_monitor, escalation_dashboard, audit_dashboard, department_dashboard, workflow_logs, memory, analytics
@@ -15,10 +36,9 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173"
-    ],
+    allow_origins=_build_cors_origins(),
+    # Allow any localhost Vite port during development.
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -50,4 +70,9 @@ def home():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(
+        "app.main:app",
+        host=DEFAULT_APP_HOST,
+        port=DEFAULT_APP_PORT,
+        reload=True,
+    )

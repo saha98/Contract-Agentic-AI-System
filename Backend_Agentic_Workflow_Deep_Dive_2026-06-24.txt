@@ -1,0 +1,14 @@
+Backend Agentic Workflow Deep Dive
+Prepared for meeting on 24 June 2026.
+
+Quick position:
+The live enterprise report path is the adaptive workflow, not the simple upload route. /adaptive-workflow saves the contract, runs the adaptive orchestrator, extracts clauses, engineers features, performs ML risk prediction, runs SHAP explainability, generates rule-based risk metrics, checks governance and compliance, produces an executive summary, and persists contract history.
+
+Most important honest technical caveats:
+- The system is agentic in architecture, but only partially dynamic in routing today.
+- FAISS clause memory and several dashboard payloads are in-memory and reset on restart.
+- The legal policy knowledge base must be manually ingested through load_kb.py before RAG context is available.
+- The XGBoost risk_score currently uses predict_proba()[0][1], which is the probability for class 1 rather than the predicted class probability in a four-class model.
+- The SHAP explainability implementation currently flattens the multiclass SHAP output incorrectly and therefore under-reports feature impacts for many features.
+
+Use the DOCX for the complete file-by-file breakdown.

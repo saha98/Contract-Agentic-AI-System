@@ -16,23 +16,17 @@ if ROOT_DIR not in sys.path:
 from app.services.llm_service import ask_llm
 from app.services.workflow_tracker import log_step
 
+from app.rag.retriever import retrieve_context
+
 
 def risk_agent(processed_clauses):
-
-    if not isinstance(
-        processed_clauses,
-        list
-    ):
-        raise ValueError(
-            "processed_clauses must be a list."
-        )
-
-    risk_results = []
 
     log_step(
         "Risk Agent",
         "Started"
     )
+
+    risks = []
 
     for clause in processed_clauses:
 
@@ -44,63 +38,87 @@ def risk_agent(processed_clauses):
 
         clause_text = clause["text"]
 
-        prompt = f"""
-You are an enterprise contract risk analyst.
+        try:
 
-Analyze the contract clause below.
+            rag_context = retrieve_context(
+                clause_text,
+                n_results=1
+            )
 
-CONTRACT CLAUSE:
+            print("\n==========================")
+            print("CLAUSE")
+            print(clause_text)
+
+            print("\nRAG CONTEXT")
+            print(rag_context)
+            print("==========================\n")
+
+            prompt = f"""
+You are a senior enterprise contract risk analyst.
+
+Analyze ONLY the contract clause below.
+
+================================================
+
+CONTRACT CLAUSE
+
 {clause_text}
+
+================================================
+
+REFERENCE MATERIAL
+
+{rag_context}
+
+================================================
+
+IMPORTANT RULES
+
+1. Analyze ONLY the clause provided.
+2. Do NOT invent clauses.
+3. Do NOT assume missing clauses exist.
+4. Use reference material only as guidance.
+5. If the clause is acceptable, classify it as Low Risk.
 
 Return ONLY valid JSON.
 
-Example:
+Format:
 
 {{
-    "risk_level": "Medium",
-    "severity": "Moderate",
-    "business_impact": "Delayed payments may impact cash flow.",
-    "recommended_action": "Negotiate payment period to 30 days.",
-    "explanation": "The clause introduces moderate financial exposure."
+    "risk_level":"Low | Medium | High",
+    "severity":"Minor | Moderate | Critical",
+    "business_impact":"...",
+    "recommended_action":"...",
+    "explanation":"..."
 }}
-
-IMPORTANT RULES:
-
-1. Return ONLY JSON.
-2. Do NOT include markdown.
-3. Do NOT include explanations outside JSON.
-4. Choose ONE value for risk_level:
-   High, Medium, Low
-5. Choose ONE value for severity:
-   Critical, Moderate, Minor
 """
 
-        try:
-
-            response = ask_llm(prompt)
-
-            print("\n========== CLAUSE ==========")
-            print(clause_text)
-
-            print("\n========== RAW LLM RESPONSE ==========")
-            print(response)
-            print("======================================\n")
-
-            cleaned_response = response.strip()
-
-            if cleaned_response.startswith("```"):
-                cleaned_response = (
-                    cleaned_response
-                    .replace("```json", "")
-                    .replace("```", "")
-                    .strip()
-                )
-
-            risk_data = json.loads(
-                cleaned_response
+            response = ask_llm(
+                prompt
             )
 
-            risk_results.append({
+            print("\n========== RAW LLM ==========")
+            print(response)
+            print("=============================\n")
+
+            cleaned = (
+                response
+                .replace(
+                    "```json",
+                    ""
+                )
+                .replace(
+                    "```",
+                    ""
+                )
+                .strip()
+            )
+
+            risk_data = json.loads(
+                cleaned
+            )
+
+            risks.append({
 
                 "clause":
                     clause_text,
@@ -120,13 +138,13 @@ IMPORTANT RULES:
                 "business_impact":
                     risk_data.get(
                         "business_impact",
-                        "Not Available"
+                        ""
                     ),
 
                 "recommended_action":
                     risk_data.get(
                         "recommended_action",
-                        "Review Required"
+                        ""
                     ),
 
                 "analysis":
@@ -140,10 +158,11 @@ IMPORTANT RULES:
         except Exception as e:
 
             print(
-                f"Risk Agent Error: {str(e)}"
+                "Risk Agent Error:",
+                str(e)
             )
 
-            risk_results.append({
+            risks.append({
 
                 "clause":
                     clause_text,
@@ -155,13 +174,13 @@ IMPORTANT RULES:
                     "Moderate",
 
                 "business_impact":
-                    "Unable to determine automatically",
+                    "Unable to analyze clause",
 
                 "recommended_action":
                     "Manual review required",
 
                 "analysis":
-                    f"LLM parsing error: {str(e)}"
+                    str(e)
 
             })
 
@@ -170,4 +189,4 @@ IMPORTANT RULES:
         "Completed"
     )
 
-    return risk_results
+    return risks

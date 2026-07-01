@@ -1,0 +1,11 @@
+GDPR Compliance Policy
+
+Contracts processing personal data must include GDPR obligations.
+
+Data Processing Agreements should be referenced where applicable.
+
+Cross-border data transfers should be explicitly governed.
+
+Data breach notification requirements should be defined.
+
+Data subjects' rights must be protected.
